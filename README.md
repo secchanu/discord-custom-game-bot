@@ -17,6 +17,8 @@
 
 ## Bot 一覧
 
+- [VALORANT 版 - Killjoy](https://discord.com/api/oauth2/authorize?client_id=861967109985927208&permissions=16777216&scope=bot%20applications.commands)
+
 ## メモ
 
 一応翻訳できるように作ってあるので手伝ってくれる方は連絡ください  
