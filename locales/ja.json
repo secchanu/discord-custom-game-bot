@@ -1,0 +1,27 @@
+{
+	"command": {
+		"help": "このコマンドです\nBotの説明を表示します",
+		"map": "マップをランダムに1つ選びます",
+		"setting": "使用するVCを設定します\nVC1,VC2,…は`/team`のチーム分けで使うVC、Homeは`/call`で集合先として使うVC(指定無しの場合はVC1)",
+		"team": "同じVCにいるメンバーを各チームに分けます",
+		"call": "チーム分けしたメンバー全員を1つのVCに集合させます"
+	},
+	"help_text": {
+		"title": "Botの使い方",
+		"description": "このBotはサーバー内でのみ機能します\n招待はBotのプロフィールから\n\n初めて使う場合はまず`/setting`から使用するVCを設定してください\n設定後に全機能が使用可能になります\n[View Code](https://github.com/secchanu/discord-custom-game-bot)"
+	},
+	"botRole_error": "Botに必要なロールが付与されていません\nBotを再度招待してロールを付与してください\n招待はBotのプロフィールから",
+	"map_error": "データを取得できませんでした",
+	"setting_text": "以下の内容で設定しました",
+	"setting_error": "はVCではありません",
+	"team_error": "VCに参加中のみ使用可能です",
+
+	"loading": "読み込み中",
+	"team": "チーム",
+	"cancel": "キャンセル",
+	"confirm": "確定",
+	"reroll": "再抽選",
+	"move": "移動",
+	"calling": "集合させています",
+	"called": "集合させました"
+}

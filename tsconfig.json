@@ -1,0 +1,10 @@
+{
+	"extends": "@tsconfig/node16/tsconfig.json",
+	"compilerOptions": {
+		"outDir": "dist",
+		"rootDir": "src",
+		"baseUrl": "src",
+		"newLine": "lf"
+	},
+	"include": ["src/**/*"]
+}
