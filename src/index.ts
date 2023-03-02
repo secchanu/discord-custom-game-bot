@@ -29,7 +29,7 @@ const guilds = new Keyv({
 const client = new Client({
 	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates],
 	presence: {
-		activities: [{ name: "Custom Game", type: ActivityType.Playing }],
+		activities: [{ name: "VALORANT", type: ActivityType.Competing }],
 	},
 });
 
