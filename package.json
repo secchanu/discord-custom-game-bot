@@ -4,6 +4,7 @@
 	"description": "",
 	"license": "MIT",
 	"author": "secchanu",
+	"main": "dist/index.js",
 	"scripts": {
 		"start": "node dist/index.js",
 		"build": "tsc",
