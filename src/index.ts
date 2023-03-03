@@ -179,7 +179,7 @@ client.on("interactionCreate", async (interaction) => {
 			await interaction.followUp(
 				`${lang["setting_text"]}\n\n${VCs.reduce((acc, vc, i) => {
 					const index = i + 1;
-					return acc + `VC${index} : ${vc}`;
+					return acc + `VC${index} : ${vc}\n`;
 				}, "")}\nHome : ${home}`,
 			);
 			break;
@@ -214,7 +214,8 @@ client.on("interactionCreate", async (interaction) => {
 					return (
 						acc +
 						`${lang["team"]}${index}\n` +
-						members.map((m) => m.toString()).join("\n")
+						members.map((m) => m.toString()).join("\n") +
+						"\n\n"
 					);
 				}, "");
 				const components = [
