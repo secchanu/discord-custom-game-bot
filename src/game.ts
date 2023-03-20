@@ -1,25 +1,21 @@
-import { Locale } from "discord.js";
+import { ActivitiesOptions, ActivityType, Locale } from "discord.js";
 import Keyv from "keyv";
 
 const mapsCache = new Keyv({
 	namespace: "maps",
 });
 
-export const TEAMS = 2;
+export const ACTIVITIES: ActivitiesOptions[] = [
+	{ name: "Custom Game", type: ActivityType.Playing },
+]; //Discord上に表示されるステータス
+export const TEAMS = 2; //チーム分けのチーム数
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const getMap = async (locale: Locale): Promise<string | undefined> => {
-	const lang = getLanguage(locale);
-	const url = `https://valorant-api.com/v1/maps?language=${lang}`;
+	const lang = locale;
 	const cached = await mapsCache.get(lang);
-	const data = cached ?? (await (await fetch(url)).json());
-	if (!cached) mapsCache.set(lang, data, 60 * 1000);
-	const maps: string[] = data.data
-		.filter(
-			(d: { uuid: string }) =>
-				d.uuid !== "ee613ee9-28b7-4beb-9666-08db13bb2244",
-		)
-		.map((d: { displayName: string }) => d.displayName);
+	const data = cached ?? {}; //API等からのデータ
+	if (!cached) mapsCache.set(lang, data, 60 * 1000); //ソースからの更新頻度
+	const maps: string[] = []; //マップ名の配列
 	const map = maps[Math.floor(Math.random() * maps.length)];
 	return map;
 };
