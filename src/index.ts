@@ -3,7 +3,6 @@ dotenv.config();
 
 import {
 	ActionRowBuilder,
-	ActivityType,
 	APIEmbed,
 	BaseInteraction,
 	ButtonBuilder,
@@ -12,43 +11,49 @@ import {
 	Client,
 	GatewayIntentBits,
 } from "discord.js";
-import Keyv from "keyv";
 import { KeyvFile } from "keyv-file";
 
-import { getMap, TEAMS } from "./game";
+import { ACTIVITIES, getMap, TEAMS } from "./game";
 import { getLang } from "./locale";
 import { getCommands } from "./command";
 
-const guilds = new Keyv({
-	store: new KeyvFile({
-		filename: "./.keyv",
-	}),
-	namespace: "guilds",
+const guilds = new KeyvFile({
+	filename: "guilds.keyv",
 });
 
 const client = new Client({
 	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates],
 	presence: {
-		activities: [{ name: "VALORANT", type: ActivityType.Competing }],
+		activities: ACTIVITIES,
 	},
 });
 
 client.once("ready", () => {
 	const guild_commands = getCommands()["global"];
 	client.application?.commands?.set([...guild_commands]);
-	client.guilds.cache.each(async (guild) => {
+	const guildIds = client.guilds.cache.map((guild) => {
 		const guildId = guild.id;
-		if (await guilds.has(guildId)) return;
+		if (guilds.has(guildId)) return guildId;
 		const locale = guild.preferredLocale;
 		const guild_commands = getCommands(locale)["guild"];
 		client.application?.commands?.set([...guild_commands["init"]], guildId);
+		return guildId;
+	});
+	guilds.keys().forEach((id) => {
+		if (!guildIds.includes(id)) guilds.delete(id);
 	});
 });
 
 client.on("guildCreate", (guild) => {
+	const guildId = guild.id;
 	const locale = guild.preferredLocale;
 	const guild_commands = getCommands(locale)["guild"];
-	client.application?.commands?.set([...guild_commands["init"]], guild.id);
+	client.application?.commands?.set([...guild_commands["init"]], guildId);
+});
+
+client.on("guildDelete", (guild) => {
+	const guildId = guild.id;
+	guilds.delete(guildId);
 });
 
 client.on("interactionCreate", async (interaction) => {
@@ -107,15 +112,18 @@ client.on("interactionCreate", async (interaction) => {
 				int?.isButton()
 					? await int.update({ content, components })
 					: await interaction.editReply({ content, components });
+				if (!map) return;
 				const filter = (i: BaseInteraction) =>
 					i.isButton() &&
 					["cancel", "confirm", "again"].includes(i.customId) &&
 					i.user.id === interaction.user.id;
 				const res = await botMessage
 					.awaitMessageComponent({ filter })
-					.catch(() => {
-						components[0].components.forEach((c) => c.setDisabled());
-						botMessage.edit({ content, components });
+					.catch(async () => {
+						components[0]?.components?.forEach((c) => c?.setDisabled());
+						await botMessage.edit({ content, components }).catch(() => {
+							return;
+						});
 					});
 				if (!res) return;
 				switch (res.customId) {
@@ -170,7 +178,7 @@ client.on("interactionCreate", async (interaction) => {
 				home: home?.id,
 				VCs: VCs.map((ch) => ch?.id),
 			};
-			await guilds.set(key, channels);
+			guilds.set(key, channels);
 			const guild_commands = getCommands(locale)["guild"];
 			await client.application?.commands?.set(
 				[...guild_commands["init"], ...guild_commands["setup"]],
@@ -186,7 +194,7 @@ client.on("interactionCreate", async (interaction) => {
 		}
 
 		case "team": {
-			if (!(await guilds.has(key))) return;
+			if (!guilds.has(key)) return;
 			await interaction.deferReply({ ephemeral: false });
 			if (!interaction.inCachedGuild()) return;
 			const channel = interaction.member.voice.channel;
@@ -243,9 +251,11 @@ client.on("interactionCreate", async (interaction) => {
 					i.user.id === interaction.user.id;
 				const res = await botMessage
 					.awaitMessageComponent({ filter })
-					.catch(() => {
-						components[0].components.forEach((c) => c.setDisabled());
-						botMessage.edit({ content, components });
+					.catch(async () => {
+						components[0]?.components?.forEach((c) => c?.setDisabled());
+						await botMessage.edit({ content, components }).catch(() => {
+							return;
+						});
 					});
 				if (!res) return;
 				switch (res.customId) {
@@ -255,7 +265,7 @@ client.on("interactionCreate", async (interaction) => {
 					}
 					case "move": {
 						await res.update({ content, components: [] });
-						const channels = await guilds.get(key);
+						const channels = guilds.get(key);
 						const VCs = channels.VCs;
 						teams.forEach((members, i) => {
 							members.forEach((member) => {
@@ -276,10 +286,10 @@ client.on("interactionCreate", async (interaction) => {
 		}
 
 		case "call": {
-			if (!(await guilds.has(key))) return;
+			if (!guilds.has(key)) return;
 			await interaction.deferReply({ ephemeral: false });
 			const cache = interaction.guild.channels.cache;
-			const channels = await guilds.get(key);
+			const channels = guilds.get(key);
 			const home = channels.home;
 			const VCs = channels.VCs;
 			await interaction.followUp(lang["calling"]);
