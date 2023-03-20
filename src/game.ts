@@ -1,23 +1,21 @@
-import { Locale } from "discord.js";
+import { ActivitiesOptions, ActivityType, Locale } from "discord.js";
 import Keyv from "keyv";
-import { KeyvFile } from "keyv-file";
 
-const cache = new Keyv({
-	store: new KeyvFile({
-		filename: "./.keyv",
-	}),
-	namespace: "cache",
+const mapsCache = new Keyv({
+	namespace: "maps",
 });
 
-export const TEAMS = 2;
+export const ACTIVITIES: ActivitiesOptions[] = [
+	{ name: "Custom Game", type: ActivityType.Playing },
+]; //Discord上に表示されるステータス
+export const TEAMS = 2; //チーム分けのチーム数
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const getMap = async (locale: Locale): Promise<string | undefined> => {
-	const key = "maps";
-	const cached = await cache.has(key);
-	const data = cached ? await cache.get(key) : {};
-	if (cached) cache.set(key, data);
-	const maps: string[] = [];
+	const lang = locale;
+	const cached = await mapsCache.get(lang);
+	const data = cached ?? {}; //API等からのデータ
+	if (!cached) mapsCache.set(lang, data, 60 * 1000); //ソースからの更新頻度
+	const maps: string[] = []; //マップ名の配列
 	const map = maps[Math.floor(Math.random() * maps.length)];
 	return map;
 };
