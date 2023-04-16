@@ -14,7 +14,7 @@ export const getMap = async (locale: Locale): Promise<string | undefined> => {
 	const lang = locale;
 	const cached = await mapsCache.get(lang);
 	const data = cached ?? {}; //API等からのデータ
-	if (!cached) mapsCache.set(lang, data, 60 * 1000); //ソースからの更新頻度
+	if (!cached) mapsCache.set(lang, data, 60 * 60 * 1000); //ソースからの更新頻度
 	const maps: string[] = []; //マップ名の配列
 	const map = maps[Math.floor(Math.random() * maps.length)];
 	return map;
