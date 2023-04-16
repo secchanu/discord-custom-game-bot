@@ -15,7 +15,7 @@ export const getMap = async (locale: Locale): Promise<string | undefined> => {
 	const url = `https://valorant-api.com/v1/maps?language=${lang}`;
 	const cached = await mapsCache.get(lang);
 	const data = cached ?? (await (await fetch(url)).json()); //API等からのデータ
-	if (!cached) mapsCache.set(lang, data, 60 * 1000); //ソースからの更新頻度
+	if (!cached) mapsCache.set(lang, data, 60 * 60 * 1000); //ソースからの更新頻度
 	const maps: string[] = data.data
 		.filter(
 			(d: { uuid: string }) =>

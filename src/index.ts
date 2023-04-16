@@ -128,7 +128,9 @@ client.on("interactionCreate", async (interaction) => {
 				if (!res) return;
 				switch (res.customId) {
 					case "cancel": {
-						await botMessage.delete();
+						await botMessage.delete().catch(() => {
+							return;
+						});
 						break;
 					}
 					case "confirm": {
@@ -260,7 +262,9 @@ client.on("interactionCreate", async (interaction) => {
 				if (!res) return;
 				switch (res.customId) {
 					case "cancel": {
-						await botMessage.delete();
+						await botMessage.delete().catch(() => {
+							return;
+						});
 						break;
 					}
 					case "move": {
