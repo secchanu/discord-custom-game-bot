@@ -8,7 +8,7 @@
 	},
 	"help_text": {
 		"title": "Botの使い方",
-		"description": "このBotはサーバー内でのみ機能します\n招待はBotのプロフィールから\n\n初めて使う場合はまず`/setting`から使用するVCを設定してください\n設定後に全機能が使用可能になります\n[View Code](https://github.com/secchanu/discord-custom-game-bot)"
+		"description": "このBotは基本的にサーバー内でのみ機能します\n招待はBotのプロフィールから\n\n初めて使う場合はまず`/setting`から使用するVCを設定してください\n設定後に全機能が使用可能になります\n[View Code](https://github.com/secchanu/discord-custom-game-bot)"
 	},
 	"botRole_error": "Botに必要なロールが付与されていません\nBotを再度招待してロールを付与してください\n招待はBotのプロフィールから",
 	"map_error": "データを取得できませんでした",
