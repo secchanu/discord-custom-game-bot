@@ -17,7 +17,7 @@
 
 ## Bot 一覧
 
-- [VALORANT 版 - Killjoy](https://discord.com/api/oauth2/authorize?client_id=861967109985927208&permissions=16777216&scope=bot%20applications.commands)
+- [VALORANT 版 - Killjoy](https://discord.com/application-directory/861967109985927208)
 
 ## メモ
 

@@ -9,6 +9,7 @@ import {
 	ButtonStyle,
 	ChannelType,
 	Client,
+	ComponentType,
 	GatewayIntentBits,
 } from "discord.js";
 import { KeyvFile } from "keyv-file";
@@ -36,7 +37,7 @@ client.once("ready", () => {
 		if (guilds.has(guildId)) return guildId;
 		const locale = guild.preferredLocale;
 		const guild_commands = getCommands(locale)["guild"];
-		client.application?.commands?.set([...guild_commands["init"]], guildId);
+		client.application?.commands?.set(guild_commands["init"], guildId);
 		return guildId;
 	});
 	guilds.keys().forEach((id) => {
@@ -48,7 +49,7 @@ client.on("guildCreate", (guild) => {
 	const guildId = guild.id;
 	const locale = guild.preferredLocale;
 	const guild_commands = getCommands(locale)["guild"];
-	client.application?.commands?.set([...guild_commands["init"]], guildId);
+	client.application?.commands?.set(guild_commands["init"], guildId);
 });
 
 client.on("guildDelete", (guild) => {
@@ -61,9 +62,10 @@ client.on("interactionCreate", async (interaction) => {
 	const locale = interaction.locale ?? interaction.guildLocale;
 	const lang = getLang(locale);
 
+	// global command
 	switch (interaction.commandName) {
 		case "help": {
-			await interaction.deferReply({ ephemeral: true });
+			await interaction.deferReply({ ephemeral: false });
 			const embed: APIEmbed = {
 				...lang["help_text"],
 				fields: [
@@ -103,7 +105,7 @@ client.on("interactionCreate", async (interaction) => {
 									.setStyle(ButtonStyle.Success)
 									.setLabel(lang["confirm"]),
 								new ButtonBuilder()
-									.setCustomId("again")
+									.setCustomId("reroll")
 									.setStyle(ButtonStyle.Primary)
 									.setLabel(lang["reroll"]),
 							]),
@@ -115,10 +117,10 @@ client.on("interactionCreate", async (interaction) => {
 				if (!map) return;
 				const filter = (i: BaseInteraction) =>
 					i.isButton() &&
-					["cancel", "confirm", "again"].includes(i.customId) &&
+					["cancel", "confirm", "reroll"].includes(i.customId) &&
 					i.user.id === interaction.user.id;
 				const res = await botMessage
-					.awaitMessageComponent({ filter })
+					.awaitMessageComponent<ComponentType.Button>({ filter })
 					.catch(async () => {
 						components[0]?.components?.forEach((c) => c?.setDisabled());
 						await botMessage.edit({ content, components }).catch(() => {
@@ -137,7 +139,7 @@ client.on("interactionCreate", async (interaction) => {
 						await res.update({ content, components: [] });
 						break;
 					}
-					case "again": {
+					case "reroll": {
 						await mapFunc(res);
 						break;
 					}
@@ -148,11 +150,12 @@ client.on("interactionCreate", async (interaction) => {
 		}
 	}
 
+	// inGuild command
 	if (!interaction.inCachedGuild()) return;
 	const key = interaction.guildId;
 	switch (interaction.commandName) {
 		case "setting": {
-			await interaction.deferReply({ ephemeral: true });
+			await interaction.deferReply({ ephemeral: false });
 			if (!interaction.guild.members.me?.roles?.botRole) {
 				await interaction.followUp(lang["botRole_error"]);
 				return;
@@ -198,7 +201,6 @@ client.on("interactionCreate", async (interaction) => {
 		case "team": {
 			if (!guilds.has(key)) return;
 			await interaction.deferReply({ ephemeral: false });
-			if (!interaction.inCachedGuild()) return;
 			const channel = interaction.member.voice.channel;
 			if (!channel) {
 				await interaction.followUp(lang["team_error"]);
@@ -235,11 +237,11 @@ client.on("interactionCreate", async (interaction) => {
 							.setStyle(ButtonStyle.Danger)
 							.setLabel(lang["cancel"]),
 						new ButtonBuilder()
-							.setCustomId("move")
+							.setCustomId("confirm")
 							.setStyle(ButtonStyle.Success)
-							.setLabel(lang["move"]),
+							.setLabel(lang["confirm"]),
 						new ButtonBuilder()
-							.setCustomId("again")
+							.setCustomId("reroll")
 							.setStyle(ButtonStyle.Primary)
 							.setLabel(lang["reroll"]),
 					]),
@@ -249,10 +251,10 @@ client.on("interactionCreate", async (interaction) => {
 					: await interaction.editReply({ content, components });
 				const filter = (i: BaseInteraction) =>
 					i.isButton() &&
-					["cancel", "move", "again"].includes(i.customId) &&
+					["cancel", "confirm", "reroll"].includes(i.customId) &&
 					i.user.id === interaction.user.id;
 				const res = await botMessage
-					.awaitMessageComponent({ filter })
+					.awaitMessageComponent<ComponentType.Button>({ filter })
 					.catch(async () => {
 						components[0]?.components?.forEach((c) => c?.setDisabled());
 						await botMessage.edit({ content, components }).catch(() => {
@@ -267,19 +269,39 @@ client.on("interactionCreate", async (interaction) => {
 						});
 						break;
 					}
-					case "move": {
-						await res.update({ content, components: [] });
-						const channels = guilds.get(key);
-						const VCs = channels.VCs;
-						teams.forEach((members, i) => {
-							members.forEach((member) => {
-								if (!member.voice.channel) return;
-								member.voice.setChannel(VCs[i]);
+					case "confirm": {
+						const components = [
+							new ActionRowBuilder<ButtonBuilder>().addComponents([
+								new ButtonBuilder()
+									.setCustomId("move")
+									.setStyle(ButtonStyle.Primary)
+									.setLabel(lang["move"]),
+							]),
+						];
+						const filter = (i: BaseInteraction) =>
+							i.isButton() &&
+							"move" === i.customId &&
+							i.user.id === interaction.user.id;
+						const collector = botMessage.createMessageComponentCollector({
+							filter,
+						});
+						collector.on("collect", async (i) => {
+							await i.update({ content, components });
+							const channels = guilds.get(key);
+							const VCs = channels.VCs;
+							teams.forEach((members, i) => {
+								members.forEach((member) => {
+									if (!member.voice.channel) return;
+									member.voice.setChannel(VCs[i]).catch(() => {
+										return;
+									});
+								});
 							});
 						});
+						await res.update({ content, components });
 						break;
 					}
-					case "again": {
+					case "reroll": {
 						await teamFunc(res);
 						break;
 					}
@@ -303,7 +325,9 @@ client.on("interactionCreate", async (interaction) => {
 				for (const member of vc?.members?.values()) {
 					const voice = member.voice;
 					if (!voice.channel || voice.channelId === home) continue;
-					await member.voice.setChannel(home);
+					await member.voice.setChannel(home).catch(() => {
+						return;
+					});
 				}
 			}
 			await interaction.editReply(lang["called"]);
