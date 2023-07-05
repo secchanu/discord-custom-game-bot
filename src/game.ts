@@ -18,8 +18,8 @@ export const getMap = async (locale: Locale): Promise<string | undefined> => {
 	if (!cached) mapsCache.set(lang, data, 60 * 60 * 1000); //ソースからの更新頻度
 	const maps: string[] = data.data
 		.filter(
-			(d: { uuid: string }) =>
-				d.uuid !== "ee613ee9-28b7-4beb-9666-08db13bb2244",
+			(d: { coordinates: string | null; displayIcon: string | null }) =>
+				d.coordinates && d.displayIcon,
 		)
 		.map((d: { displayName: string }) => d.displayName); //マップ名の配列
 	const map = maps[Math.floor(Math.random() * maps.length)];
