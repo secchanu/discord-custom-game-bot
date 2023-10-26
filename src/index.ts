@@ -323,7 +323,7 @@ client.on("interactionCreate", async (interaction) => {
 				for (const vcId of VCs) {
 					const vc = cache.get(vcId);
 					if (vc?.type !== ChannelType.GuildVoice) continue;
-					for (const member of vc?.members?.values()) {
+					for (const member of vc?.members?.values() ?? []) {
 						const voice = member.voice;
 						if (!voice.channel || voice.channelId === home) continue;
 						await member.voice.setChannel(home).catch(() => {
